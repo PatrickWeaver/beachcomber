@@ -14,7 +14,7 @@ body {
   border: 2px solid black;
   margin: 2px;
   display: inline-block;
-  color: #CCC;
+  color: #FFF;
 }
 
 .row {
@@ -29,4 +29,52 @@ body {
 .one {
   background: url(1.png);
   background-size: contain;
+}
+
+.two {
+  background: url(2.png);
+  background-size: contain;
+}
+
+.three {
+  background: url(3.png);
+  background-size: contain;
+}
+
+.four {
+  background: url(4.png);
+  background-size: contain;
+}
+
+.five {
+  background: url(5.png);
+  background-size: contain;
+}
+
+.six {
+  background: url(6.png);
+  background-size: contain;
+}
+
+.seven {
+  background: url(7.png);
+  background-size: contain;
+}
+
+.eight {
+  background: url(8.png);
+  background-size: contain;
+}
+
+.blank {
+  background: #DDD;
+  background-size: contain;
+}
+
+.unclicked {
+  background: none !important;
+}
+
+.index {
+  display: none;
 }
