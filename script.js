@@ -3,11 +3,43 @@ var widthForm = document.getElementById("width-form");
 var heightForm = document.getElementById("height-form");
 var minesForm = document.getElementById("mines-form");
 
+
+//Placeholder Values:
+var width = 10;
+var height = 10;
+var mines = 10;
+var wp1 = 11;
+var wm1 = 9;
+var neighbors = [];
+var squares = [];
+
+var getNeighbors = function(squareId) {
+  if (squareId%width === 0) {
+    neighbors = [width, wm1, -1, -width, -wp1];
+  } else if (squareId%width === wm1) {
+    neighbors = [wp1, width, 1, -wm1, -width];
+  } else {
+    neighbors = [wp1, width, wm1, 1, -1, -wm1, -width, -wp1];
+  }
+}
+
+var checkNeighbors = function(squareId, checkValue, newValue) {
+  for (n in neighbors) {
+    if (squares[squareId - neighbors[n]]) {
+      if (squares[squareId - neighbors[n]][2] != checkValue){
+        squares[squareId - neighbors[n]][2] += newValue;
+      }
+    }
+  } 
+}
+
 var drawBoard = function() {
+  squares = [];
   
   board.innerHTML = "";
 
   var width = widthForm.value;
+  width = parseInt(width);
   var height = heightForm.value;
   var num_mines = minesForm.value;
 
@@ -20,7 +52,7 @@ var drawBoard = function() {
 
   // Place Mines:
 
-  var squares = [];
+
 
 
   for (i = 0; i < width; i++) {
@@ -41,46 +73,26 @@ var drawBoard = function() {
     }
   }
 
-  /*
-  for (s in squares) {
-    x = squares[s][0] - 1;
-    y = squares[s][1] - 1;
-    index_s = "" + x + y;
-    index = parseInt(index_s);
-    console.log("Square:");
-    console.log("s: " + s);
-    console.log("x: " + x);
-    console.log("y: " + y);
-    console.log("index: " + index);
-    console.log("");
-
-
-  }
-  */
-
   for (s in squares){
     neighbors = [];
     square = squares[s];
     s1 = parseInt(s) + 1;
     ss = parseInt(s);
-    //console.log("s: " + s + ", s%10: " + s % 10 + ", s+1: " + s1 + ", s+1 % 10: " + s1%10);
     // Find next to mine:
-    if (ss%10 === 0) {
-      neighbors = [10, 9, -1, -10, -11];
-    } else if (ss%10 ===9) {
-      neighbors = [11, 10, 1, -9, -10];
-    } else {
-      neighbors = [11, 10, 9, 1, -1, -9, -10, -11];
-    }
+    wm1 = width - 1;
+    wp1 = width + 1;
+    
+    getNeighbors(ss);
 
     if (square[2] === -1){
-      for (n in neighbors) {
+      checkNeighbors(ss, -1, 1);
+      /*for (n in neighbors) {
         if (squares[ss - neighbors[n]]) {
           if (squares[ss - neighbors[n]][2] != -1){
             squares[ss - neighbors[n]][2] += 1;
           }
         }
-      }
+      }*/
     }
   }
 
@@ -125,12 +137,40 @@ var drawBoard = function() {
 
 
   board.insertAdjacentHTML("beforeend", insert);
-
 }
 
 
 $(document).on("click", ".board-square", function() {
-  $( this ).removeClass("unclicked");
+  $( this ).toggleClass("unclicked");
+  
+  sID = $( this ).attr("id");
+  
+  if ( $( this ).hasClass("blank") ) {
+    console.log("BLANK! " + sID );
+  }
+  
+  getNeighbors(sID);
+  
+  if (squares[sID][2] === 0) {
+  
+    for (n in neighbors) {
+      otherSquareId = sID - neighbors[n];
+      otherSquare = squares[otherSquareId];
+      otherSquareValue = otherSquare[2];
+      otherSquareE = document.getElementById(otherSquareId);
+
+      if (squares[otherSquareId]) {
+        if (squares[otherSquareId][2] != -1){
+          console.log(otherSquareId + " also click");
+          jId = otherSquareId.toString();
+          console.log("#" + jId);
+          $( "#" + jId ).removeClass("unclicked");
+        }
+      }
+    }
+    
+  }
+  
 });
 
 

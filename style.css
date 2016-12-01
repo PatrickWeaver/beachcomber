@@ -94,10 +94,17 @@ h1 {
   background-size: contain;
 }
 
-.unclicked {
+.unclickedd {
   background: none !important;
+}
+.unclicked {
+  border: 2px solid red !important;
 }
 
 .index {
+  display: none;
+}
+
+form {
   display: none;
 }
