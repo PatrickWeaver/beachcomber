@@ -14,13 +14,15 @@ var neighbors = [];
 var squares = [];
 
 var getNeighbors = function(squareId) {
+  var newNeighbors;
   if (squareId%width === 0) {
-    neighbors = [width, wm1, -1, -width, -wp1];
+    newNeighbors = [width, wm1, -1, -width, -wp1];
   } else if (squareId%width === wm1) {
-    neighbors = [wp1, width, 1, -wm1, -width];
+    newNeighbors = [wp1, width, 1, -wm1, -width];
   } else {
-    neighbors = [wp1, width, wm1, 1, -1, -wm1, -width, -wp1];
+    newNeighbors = [wp1, width, wm1, 1, -1, -wm1, -width, -wp1];
   }
+  return newNeighbors;
 }
 
 var checkNeighbors = function(squareId, checkValue, newValue) {
@@ -30,12 +32,12 @@ var checkNeighbors = function(squareId, checkValue, newValue) {
         squares[squareId - neighbors[n]][2] += newValue;
       }
     }
-  } 
+  }
 }
 
 var drawBoard = function() {
   squares = [];
-  
+
   board.innerHTML = "";
 
   var width = widthForm.value;
@@ -44,17 +46,13 @@ var drawBoard = function() {
   var num_mines = minesForm.value;
 
   var num_squares = width * height;
-  
+
   if (num_mines > num_squares) {
     alert("Too many mines");
     return
   }
 
   // Place Mines:
-
-
-
-
   for (i = 0; i < width; i++) {
     for(j = 0; j < height; j++) {
         x_coord = i;
@@ -81,8 +79,8 @@ var drawBoard = function() {
     // Find next to mine:
     wm1 = width - 1;
     wp1 = width + 1;
-    
-    getNeighbors(ss);
+
+    neighbors = neighbors.concat(getNeighbors(ss));
 
     if (square[2] === -1){
       checkNeighbors(ss, -1, 1);
@@ -142,25 +140,25 @@ var drawBoard = function() {
 
 $(document).on("click", ".board-square", function() {
   $( this ).toggleClass("unclicked");
-  
+
   sID = $( this ).attr("id");
-  
+
   if ( $( this ).hasClass("blank") ) {
     console.log("BLANK! " + sID );
   }
-  
-  getNeighbors(sID);
-  
+
+  neighbors = neighbors.concat(getNeighbors(sID));
+
   if (squares[sID][2] === 0) {
-  
+
     for (n in neighbors) {
       otherSquareId = sID - neighbors[n];
       otherSquare = squares[otherSquareId];
       otherSquareValue = otherSquare[2];
       otherSquareE = document.getElementById(otherSquareId);
 
-      if (squares[otherSquareId]) {
-        if (squares[otherSquareId][2] != -1){
+      if (otherSquare) {
+        if (otherSquareValue != -1){
           console.log(otherSquareId + " also click");
           jId = otherSquareId.toString();
           console.log("#" + jId);
@@ -168,13 +166,10 @@ $(document).on("click", ".board-square", function() {
         }
       }
     }
-    
   }
-  
 });
 
 
 $(document).on("click", ".bomb", function() {
   alert("💣 You lose 💣");
 });
-
