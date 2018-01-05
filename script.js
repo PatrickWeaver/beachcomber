@@ -15,13 +15,14 @@ var squares = [];
 
 var getNeighbors = function(squareId) {
   var newNeighbors;
-  if (squareId%width === 0) {
+  if (squareId % width === 0) {
     newNeighbors = [width, wm1, -1, -width, -wp1];
-  } else if (squareId%width === wm1) {
+  } else if (squareId % width === wm1) {
     newNeighbors = [wp1, width, 1, -wm1, -width];
   } else {
     newNeighbors = [wp1, width, wm1, 1, -1, -wm1, -width, -wp1];
   }
+  // Need to return non relative positions to combine array for recursive get all neighbors
   return newNeighbors;
 }
 
@@ -143,12 +144,14 @@ $(document).on("click", ".board-square", function() {
 
   sID = $( this ).attr("id");
 
+  // This is the same information as squares[sID][2]
   if ( $( this ).hasClass("blank") ) {
     console.log("BLANK! " + sID );
   }
 
   neighbors = neighbors.concat(getNeighbors(sID));
 
+  // If square is blank
   if (squares[sID][2] === 0) {
 
     for (n in neighbors) {
