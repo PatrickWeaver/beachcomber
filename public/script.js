@@ -14,16 +14,13 @@ var neighbors = [];
 var squares = [];
 
 var getNeighbors = function(squareId) {
-  var newNeighbors;
-  if (squareId % width === 0) {
-    newNeighbors = [width, wm1, -1, -width, -wp1];
-  } else if (squareId % width === wm1) {
-    newNeighbors = [wp1, width, 1, -wm1, -width];
+  if (squareId%width === 0) {
+    neighbors = [width, wm1, -1, -width, -wp1];
+  } else if (squareId%width === wm1) {
+    neighbors = [wp1, width, 1, -wm1, -width];
   } else {
-    newNeighbors = [wp1, width, wm1, 1, -1, -wm1, -width, -wp1];
+    neighbors = [wp1, width, wm1, 1, -1, -wm1, -width, -wp1];
   }
-  // Need to return non relative positions to combine array for recursive get all neighbors
-  return newNeighbors;
 }
 
 var checkNeighbors = function(squareId, checkValue, newValue) {
@@ -33,12 +30,12 @@ var checkNeighbors = function(squareId, checkValue, newValue) {
         squares[squareId - neighbors[n]][2] += newValue;
       }
     }
-  }
+  } 
 }
 
 var drawBoard = function() {
   squares = [];
-
+  
   board.innerHTML = "";
 
   var width = widthForm.value;
@@ -47,13 +44,18 @@ var drawBoard = function() {
   var num_mines = minesForm.value;
 
   var num_squares = width * height;
-
+  
   if (num_mines > num_squares) {
     alert("Too many mines");
     return
   }
+  clearedNeighbors = [];
 
   // Place Mines:
+
+
+
+
   for (i = 0; i < width; i++) {
     for(j = 0; j < height; j++) {
         x_coord = i;
@@ -80,8 +82,8 @@ var drawBoard = function() {
     // Find next to mine:
     wm1 = width - 1;
     wp1 = width + 1;
-
-    neighbors = neighbors.concat(getNeighbors(ss));
+    
+    getNeighbors(ss);
 
     if (square[2] === -1){
       checkNeighbors(ss, -1, 1);
@@ -138,41 +140,55 @@ var drawBoard = function() {
   board.insertAdjacentHTML("beforeend", insert);
 }
 
+// Figure out why even though the ids are in clearedNeighbors that they aren't responding to indexOf.
 
-$(document).on("click", ".board-square", function() {
-  $( this ).toggleClass("unclicked");
-
-  sID = $( this ).attr("id");
-
-  // This is the same information as squares[sID][2]
-  if ( $( this ).hasClass("blank") ) {
-    console.log("BLANK! " + sID );
-  }
-
-  neighbors = neighbors.concat(getNeighbors(sID));
-
-  // If square is blank
-  if (squares[sID][2] === 0) {
-
+var clearNeighbors = function(squareId) {
+  getNeighbors(squareId);
+  if (squares[squareId][2] === 0) {
+    if (clearedNeighbors.indexOf(squareId) === -1){
+      clearedNeighbors.push(squareId);
+      console.log("Push: " + squareId);
+    }
     for (n in neighbors) {
       otherSquareId = sID - neighbors[n];
       otherSquare = squares[otherSquareId];
-      otherSquareValue = otherSquare[2];
-      otherSquareE = document.getElementById(otherSquareId);
-
       if (otherSquare) {
-        if (otherSquareValue != -1){
-          console.log(otherSquareId + " also click");
-          jId = otherSquareId.toString();
-          console.log("#" + jId);
-          $( "#" + jId ).removeClass("unclicked");
+        otherSquareValue = otherSquare[2];
+        otherSquareE = document.getElementById(otherSquareId);
+        $( "#" + otherSquareId.toString() ).removeClass("unclicked");
+        console.log("ClearedNeighbors: " + clearedNeighbors);
+        if (clearedNeighbors.indexOf(parseInt(otherSquareId)) === -1) {
+          console.log("Index: " + otherSquareId + " -- " + clearedNeighbors.indexOf(parseInt(otherSquareId)));
+          console.log("not done yet " + otherSquareId);
+          //clearNeighbors(otherSquareId);
+        } else {
+          console.log("already done " + otherSquareId);
         }
+        // Recursive clearNeighbors() here.
+        // Switch clearedSquares to be for clearedNeighbors.
       }
     }
   }
+  console.log(clearedNeighbors);
+}
+
+
+$(document).on("click", ".board-square", function() {
+  $( this ).removeClass("unclicked");
+  
+  sID = $( this ).attr("id");
+  intsID = parseInt(sID);
+  
+  /*
+  if ( $( this ).hasClass("blank") ) {
+    console.log("BLANK! " + sID );
+  }
+  */
+  clearNeighbors(sID);
 });
 
 
 $(document).on("click", ".bomb", function() {
   alert("💣 You lose 💣");
 });
+
