@@ -6,14 +6,24 @@ const Board = require('./Board');
 class Game extends React.Component {
   constructor(props) {
     super(props);
+    this.handleClick = this.handleClick.bind(this);
     this.state = {
-      board: this.buildBoard(3,3,4)
+      height: props.height,
+      width: props.width,
+      mines: props.mines,
+      board: this.buildBoard(props.height,props.width,props.mines)
     };
   }
   
   buildBoard(height, width, mines) {
-    // Generate random mine positions:
     var totalSquares = height * width;
+    
+    // Make sure there aren't more mines than squares
+    if (mines > totalSquares) {
+      mines = totalSquares;
+    }
+    
+    // Generate random mine positions:
     var mineArray = [];
     for (var i = 0; i < mines; i++) {
       var position = Math.floor(Math.random() * totalSquares);
@@ -46,17 +56,126 @@ class Game extends React.Component {
     for (var i = 0; i < height; i++) {
       var startSlice = width * i;
       var endSlice = (width * (i + 1));
-      board.push(oneDimBoard.slice(startSlice, endSlice));
+      var row = oneDimBoard.slice(startSlice, endSlice);
+      for (var j in row) {
+        row[j].rowIndex = i;
+        row[j].colIndex = j;
+        row[j].clickStatus = false;
+      }
+      board.push(row);
     }
-    console.log(board);
+    
+    for (var i = 0; i < height; i++) {
+      for (var j = 0; j < width; j++) {
+        board[i][j].neighboringMines = this.countNeighboringMines(board[i][j], board, width, height); 
+      }
+    }
+    
+    
     return board;
   }
+  
+  getNeighbors(square, width, height) {
+    var boardIndexNeighbors = [];
+    var relNeighbors = [
+      [-1,-1],
+      [ 0,-1],
+      [ 1,-1],
+      [-1, 0],
+//not [ 0, 0]
+      [ 1, 0],
+      [-1, 1],
+      [ 0, 1],
+      [ 1, 1]
+    ]
+    var absNeighbors = relNeighbors.map(
+      s => s.map(
+        (c, i) => i === 0 ? c + parseInt(square.colIndex) : c + parseInt(square.rowIndex)   
+    ));
+    //return absNeighbors;
+    for (var i in absNeighbors) {
+      var n = absNeighbors[i];
+      if (n[0] >= 0 && n[1] >= 0 && n[0] < width && n[1] < height) {
+        // row, column are reversed order as array indexes
+        boardIndexNeighbors.push({colIndex: n[0], rowIndex: n[1]});
+      }
+    }
+    return boardIndexNeighbors;
+  }
+  
+  countNeighboringMines(square, board, width, height) {
+    
+    var neighboringMines = 0;
+    var boardIndexNeighbors = this.getNeighbors(square, width, height);
+    for (var i in boardIndexNeighbors) {
+      var r = boardIndexNeighbors[i].rowIndex;
+      var c = boardIndexNeighbors[i].colIndex;
+      var nSq = board[r][c];
+      if (nSq.mineStatus) {
+        neighboringMines++; 
+      }
+    }
+    return neighboringMines;
+  }
+  
+  revealNeighbors(square, board) {
+    /*
+    for neighbors of non mine-neighbor square:
+      reveal (as if you clicked on it)
+      (if it's also empty click functionality should start recursion)
+    */
+    var boardIndexNeighbors = this.getNeighbors(square, this.state.width, this.state.height);
+    for (var i in boardIndexNeighbors) {
+      var r = boardIndexNeighbors[i].rowIndex;
+      var c = boardIndexNeighbors[i].colIndex;
+      this.handleClick(board[r][c]);
+    }
+    
+    
+  }
+  
+  handleClick(square) {
+    if (!square.clickStatus) {
+      // If square clicked is a mine neighbor do nothing except reveal
+      var callback = () => {};
+      if (square.mineStatus) {
+        // If square clicked is a mine trigger lose game
+        callback = this.clickMine;
+      } else if (!square.neighboringMines) {
+        // If square clicked is not a mine neighbor start recursive reveal
+        callback = (board) => this.revealNeighbors(square, board);
+      }    
+      var updatedBoard;
+      this.setState((prevState, props) => {
+        updatedBoard = prevState.board;
+        updatedBoard[square.rowIndex][square.colIndex].clickStatus = true;
+        return {
+          board: updatedBoard
+        };
+      },() => callback(updatedBoard));
+    }
+  }
+  
+  handleFlag(e, square) {
+    e.preventDefault();
+    alert(square.position);
+  }
+    
+  
+  clickMine() {
+    alert("You Lose");
+  }
+  
   
   render() {
     return (
       <div>
         <h1>Minesweeper</h1>
-        <Board />
+        <Board
+          board={this.state.board}
+          clickSquare={this.handleClick}
+          flagSquare={this.handleFlag}
+        />
       </div>
     );
   }

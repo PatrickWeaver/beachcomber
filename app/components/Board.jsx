@@ -2,20 +2,45 @@ const React = require('react');
 
 const Square = require('./Square');
 
-function numb() {
-  const number = Math.ceil(Math.random() * 9);
-  return number;
+
+const Row = function(props) {
+  
+  const squares = props.squares.map((square) => 
+    <Square
+      square={square}
+      click={props.clickSquare}
+      flagSquare={props.flagSquare}
+    />
+  );
+  
+  return (
+    <ul class="row">
+      {squares}
+    </ul>
+  );
 }
 
-const Board = function() {
+
+function Board(props) {
+  const rows = props.board.map((row) =>
+    <li>
+      <Row
+        squares={row}
+        clickSquare={props.clickSquare}
+        flagSquare={props.flagSquare}
+      />                             
+    </li>
+  );
+
+  
   return (
     <div>
       <h3>Board</h3>
-      <Square n={numb()} />
-      <Square n={numb()} />
-      <Square n={numb()} />
+      <h4>{typeof props.board} - {props.board.length}</h4>
+      <ul id="board">{rows}</ul>
     </div>
   );
 }
+
 
 module.exports = Board;
