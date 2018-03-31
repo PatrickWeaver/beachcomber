@@ -4,7 +4,7 @@ const ReactDOM = require('react-dom');
 /* Import Components */
 const Game = require('./components/Game');
 
-ReactDOM.render(<Game width={7} height={7} mines={7} />, document.getElementById('main'));
+ReactDOM.render(<Game width={9} height={9} mines={10} />, document.getElementById('main'));
 
 
 /*
@@ -12,11 +12,12 @@ ReactDOM.render(<Game width={7} height={7} mines={7} />, document.getElementById
 To Do
 ------
 
-- Set Default Values
+x Set Default Values
   x Width
   x Height
   x Mines
-- Draw Board
+~ Change Starting Values
+x Draw Board
   x Check there aren't too many mines
   x Set State:
     x Position
@@ -25,15 +26,31 @@ To Do
       x Neighbor
       x Empty
     x Click Status
-- Better notifications
+x Better notifications
+  x DOM notifications
+  x Style notifications  
 x Recursive show on click empty
-- Flexbox or CSS Grid for layout
-- Visible/Invisible style
-- Mark as flagged
-- Win animation
-- Lose animation
-- Story
-- Instructions
-
+x Flexbox or CSS Grid for layout
+x Visible/Invisible style
+x Mark as flagged
+x Check for Win on click
+x Win animation
+x Lose animation
+- Theme
+  - Story
+  - Instructions
+  - Write better notification copy
+  x Background Pattern
+  x Change colors
+  x Add more varied emojis
+x Add indexes to board squares
+- Move setState in handleClick into function
+~ Fix longpress
+x Toggle for flags
+x Reveal mines after win or lose
+- Can't lose on first click
+x Flag Counter
+x Can't flag clicked square
+x Style Toggle
 
 */
