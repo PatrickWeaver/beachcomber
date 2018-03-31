@@ -25,7 +25,8 @@ class Game extends React.Component {
       height: props.height,
       width: props.width,
       mines: props.mines,
-      board: this.buildBoard(props.height,props.width,props.mines)
+      board: this.buildBoard(props.height,props.width,props.mines),
+      boardSize: 0
     };
   }
   
@@ -289,16 +290,18 @@ class Game extends React.Component {
     });
   }
   
-  
   render() {
     return (
       <div>
         <Animations win={this.state.win} lose={this.state.lose} />
-        <div id="game-container">
-          <h1 id="site-title">Beachcomber!</h1>
+         <h1 id="site-title">Beachcomber!</h1>
           <h5 class="instructions">
           You a beachcomber on the hunt for treasure! You can dig to try to find some hints, but don't reveal the treasure now while the beach is full, put a flag on all of the treasure you find so you can come back for it later. Right click to place a flag or click the flag/reveal toggle at the top-right. Good luck!
           </h5>
+        <div
+          id="game-container"
+        >
+         
           <Alert
             message={this.state.alertMessage}
             close={this.handleCloseAlert}
