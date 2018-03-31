@@ -3,34 +3,65 @@ const React = require('react');
 
 const Square = function(props) {
   
-  /*
-  // Could use this for long press on desktop instead of right click
-  var touchTimer;
+  const treasures = ["🕰","📻","💰","💎","🔮","🔑","🏐","🏅","🎷","💍","🎟","📟","💵","📷","📱"]
   
-  function handleTouchStart() {
-    var touchTimer = setTimeout(() => console.log('long press activated'), 1500);
+  function getLabel() {
+    if (props.square.flagStatus) {
+      return "🎏"; 
+    } else if (props.square.clickStatus) {
+      if (props.square.mineStatus) {
+        return treasures[props.square.position % treasures.length];
+      } else {
+        if (props.square.neighboringMines) {
+          return props.square.neighboringMines;
+        } else {
+          return "\u00A0";
+        }
+      }
+    } else {
+      return false;
+    }
   }
   
-  function handleTouchEnd() {
-    clearTimeout(touchTimer);
+  function gridSize() {
+    var w = document.documentElement.clientWidth;
+    var h = document.documentElement.clientHeight;
+    return (w / props.width) > (h / props.height) ? h * .85 / props.height : w * .85 / props.width;
   }
-  */
+  
+  
+  function getStyle() {  
+    var size = gridSize();
+    return {
+      height: size + "px",
+      width: size + "px"
+    }
+  }
+  
+  function positionLabel() {
+    var size = gridSize();
+    return {
+      lineHeight: (size / 2) + "px",
+      fontSize: (size / 2) + "px",
+      margin: ((size / 4) - 2) + "px auto"
+    } 
+  }
+  
+  var label = getLabel();
+  const labelHeader = label ? <h4 style={positionLabel()}>{label}</h4> : false;
     
   return (
     <li
-      onClick={() => props.click(props.square)}
-      onContextMenu={(e) => props.flagSquare(e, props.square)}
-      /*onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      onMouseDown={handleTouchStart}
-      onMouseUp={handleTouchEnd}*/
-      className={props.square.clickStatus ? "clicked" : "unclicked"}
+      onClick={(e) => props.click(e, props.square, "reveal")}
+      onContextMenu={(e) => props.click(e, props.square, "flag")}
+      style={getStyle()}
     >
-      <span class="info">
-        {props.square.position}[{props.square.colIndex},{props.square.rowIndex}]<br />
-        {props.square.clickStatus ? "#" : "_"}  
-      </span>
-      <h4>{props.square.mineStatus ? "💣" : props.square.neighboringMines > 0 ? props.square.neighboringMines : "\u00A0"}</h4>
+      <div className={
+          (props.square.clickStatus ? "clicked" : "unclicked")
+          + (props.square.mineTriggered ? " mine-triggered" : "")
+          + " square-inner"}>
+        {labelHeader}
+      </div>
     </li>
   );
 }

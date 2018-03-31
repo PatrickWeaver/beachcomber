@@ -2,12 +2,26 @@ const React = require('react');
 
 /* Import Components */
 const Board = require('./Board');
+const Alert = require('./Alert');
+const Animations = require('./Animations');
+const Toggle = require('./Toggle');
+const Counter = require('./Counter');
 
 class Game extends React.Component {
   constructor(props) {
     super(props);
+    this.resize = this.resize.bind(this);
     this.handleClick = this.handleClick.bind(this);
+    this.clickMine = this.clickMine.bind(this);
+    this.handleToggle = this.handleToggle.bind(this);
+    this.handleCloseAlert = this.handleCloseAlert.bind(this);
     this.state = {
+      alertMessage: "",
+      win: false,
+      lose: false,
+      revealed: false,
+      flagClick: false,
+      flagCount: props.mines,
       height: props.height,
       width: props.width,
       mines: props.mines,
@@ -15,12 +29,60 @@ class Game extends React.Component {
     };
   }
   
+  resize() {
+    this.forceUpdate();
+  }
+
+  componentDidMount() {
+    window.addEventListener('resize', this.resize)
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.resize)
+  }
+  
+  componentDidUpdate(prevProps, prevState) {
+    var updatedBoard = prevState.board;
+    var newWinState = false;
+    var newBoardState = false;
+       
+    if (!this.state.win) {
+      var win = this.checkWin();
+      if (win) {
+        console.log("You Win!!");
+        newWinState = {
+          alertMessage: "You Win!",
+          win: true
+        };
+      }
+    }
+    
+    if ((this.state.win || this.state.lose) && !this.state.revealed) {  
+      updatedBoard.forEach(row => {
+        row.forEach(square => {
+          if (square.mineStatus) {
+            square.clickStatus = true;
+          }
+        });
+      });
+      
+      newBoardState = {
+        board: updatedBoard,
+        revealed: true
+      };
+    }
+    
+    if (newWinState || newBoardState) {
+      this.setState(Object.assign({}, newWinState, newBoardState));
+    }
+  }
+  
   buildBoard(height, width, mines) {
     var totalSquares = height * width;
     
     // Make sure there aren't more mines than squares
-    if (mines > totalSquares) {
-      mines = totalSquares;
+    if (mines >= totalSquares) {
+      mines = totalSquares - 1;
     }
     
     // Generate random mine positions:
@@ -61,6 +123,8 @@ class Game extends React.Component {
         row[j].rowIndex = i;
         row[j].colIndex = j;
         row[j].clickStatus = false;
+        row[j].flagStatus = false;
+        row[j].mineTriggered = false;
       }
       board.push(row);
     }
@@ -128,54 +192,140 @@ class Game extends React.Component {
     for (var i in boardIndexNeighbors) {
       var r = boardIndexNeighbors[i].rowIndex;
       var c = boardIndexNeighbors[i].colIndex;
-      this.handleClick(board[r][c]);
-    }
-    
-    
+      if (!board[r][c].clickStatus) {
+        this.handleClick(false, board[r][c], "autoReveal");
+      }
+    } 
   }
   
-  handleClick(square) {
-    if (!square.clickStatus) {
-      // If square clicked is a mine neighbor do nothing except reveal
-      var callback = () => {};
-      if (square.mineStatus) {
-        // If square clicked is a mine trigger lose game
-        callback = this.clickMine;
-      } else if (!square.neighboringMines) {
-        // If square clicked is not a mine neighbor start recursive reveal
-        callback = (board) => this.revealNeighbors(square, board);
-      }    
-      var updatedBoard;
-      this.setState((prevState, props) => {
-        updatedBoard = prevState.board;
-        updatedBoard[square.rowIndex][square.colIndex].clickStatus = true;
-        return {
-          board: updatedBoard
-        };
-      },() => callback(updatedBoard));
+  handleClick(e, square, type) {
+    if (e) {
+      e.preventDefault();
     }
-  }
-  
-  handleFlag(e, square) {
-    e.preventDefault();
-    alert(square.position);
+    if ((type === "reveal"  && !this.state.flagClick) || type === "autoReveal") {
+      if (!square.clickStatus && !square.flagStatus) {
+        // If square clicked is a mine neighbor do nothing except reveal
+        var callback = () => {};
+        if (square.mineStatus) {
+          // If square clicked is a mine trigger lose game
+          square.mineTriggered = true;
+          callback = this.clickMine;
+        } else if (!square.neighboringMines) {
+          // If square clicked is not a mine neighbor start recursive reveal
+          callback = (board) => this.revealNeighbors(square, board);
+        }    
+        var updatedBoard;
+        this.setState((prevState, props) => {
+          updatedBoard = prevState.board;
+          updatedBoard[square.rowIndex][square.colIndex].clickStatus = true;
+          return {
+            board: updatedBoard
+          };
+        },() => callback(updatedBoard));
+      }
+    } else {
+      if (!square.clickStatus) {
+        var flagStatus = true;
+        var flagChange = -1;
+        if (square.flagStatus) {
+          flagStatus = false;
+          flagChange = 1;
+        }
+        this.setState((prevState, props) => {
+          updatedBoard = prevState.board;
+          updatedBoard[square.rowIndex][square.colIndex].flagStatus = flagStatus;
+          return {
+            board: updatedBoard,
+            flagCount: prevState.flagCount + flagChange
+          };
+        });
+      }
+    }
   }
     
   
   clickMine() {
-    alert("You Lose");
+    //alert("You Lose");
+    setTimeout(function() {
+      this.setState({
+        alertMessage: "You Lose",
+        lose: true
+      });
+    }.bind(this), 300);
+  }
+  
+  checkWin() {
+    if (!this.state.lose) {
+      var win = true;
+      for (var i in this.state.board) {
+        for (var j in this.state.board[i]) {
+          var square = this.state.board[i][j];
+          if (!square.clickStatus && !square.mineStatus) {
+            win = false;
+            break;
+          }
+        }
+        if (!win) {
+          break;
+        }
+      }
+      return win;
+    } else {
+      return false;
+    }
+  }
+  
+  handleToggle() {
+    this.setState((prevState, props) => {
+      return {
+        flagClick: !prevState.flagClick
+      };
+    });
+  }
+  
+  handleCloseAlert() {
+    this.setState({
+      alertMessage: ""
+    });
   }
   
   
   render() {
     return (
       <div>
-        <h1>Minesweeper</h1>
-        <Board
-          board={this.state.board}
-          clickSquare={this.handleClick}
-          flagSquare={this.handleFlag}
-        />
+        <Animations win={this.state.win} lose={this.state.lose} />
+        <div id="game-container">
+          <h1 id="site-title">Beachcomber!</h1>
+          <h5 class="instructions">
+          You a beach comber on the hunt for treasure! You can dig to try to find some hints, but don't reveal the treasure now while the beach is full, put a flag on all of the treasure you find so you can come back for it later. Right click to place a flag or click the flag/reveal toggle at the top-right. Good luck!
+          </h5>
+          <Alert
+            message={this.state.alertMessage}
+            close={this.handleCloseAlert}
+          />
+          <div id="controls-container">
+            
+            <Counter
+              count={this.state.flagCount}
+              label={"Flags"}
+            />
+            <Toggle
+              status={this.state.flagClick}
+              off={"👁"}
+              on={"🎏"}
+              click={this.handleToggle}
+            />
+              
+          </div>
+          
+          <Board
+            board={this.state.board}
+            clickSquare={this.handleClick}
+            height={this.state.height}
+            width={this.state.width}
+          />
+
+        </div>
       </div>
     );
   }

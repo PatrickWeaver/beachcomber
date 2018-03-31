@@ -7,9 +7,11 @@ const Row = function(props) {
   
   const squares = props.squares.map((square) => 
     <Square
+      key={square.position.toString()}
       square={square}
       click={props.clickSquare}
-      flagSquare={props.flagSquare}
+      height={props.height}
+      width={props.width}
     />
   );
   
@@ -25,9 +27,11 @@ function Board(props) {
   const rows = props.board.map((row) =>
     <li>
       <Row
+        key={row[0].position.toString()}
         squares={row}
         clickSquare={props.clickSquare}
-        flagSquare={props.flagSquare}
+        height={props.height}
+        width={props.width}
       />                             
     </li>
   );
@@ -35,8 +39,6 @@ function Board(props) {
   
   return (
     <div>
-      <h3>Board</h3>
-      <h4>{typeof props.board} - {props.board.length}</h4>
       <ul id="board">{rows}</ul>
     </div>
   );
