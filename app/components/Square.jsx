@@ -7,7 +7,24 @@ const Square = function(props) {
   
   function getLabel() {
     if (props.square.flagStatus) {
-      return "🎏"; 
+      if (props.square.clickStatus) {
+        return (
+          <span>
+            <span
+              style={{fontSize: "30%"}}
+            >
+              🎏
+            </span>
+            <span
+              style={{fontSize: "75%"}}
+            >
+              {treasures[props.square.position % treasures.length]}
+            </span>
+          </span>
+        )
+      } else {
+        return "🎏";
+      }
     } else if (props.square.clickStatus) {
       if (props.square.mineStatus) {
         return treasures[props.square.position % treasures.length];
